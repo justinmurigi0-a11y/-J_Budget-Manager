@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Justin's Student Budget Manager </title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #2563eb, #9333ea);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 25px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .summary {
+      display: flex;
+      justify-content: space-around;
+      margin: 15px 0;
+      text-align: center;
+    }
+
+    .summary div {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 10px;
+      flex: 1;
+      margin: 5px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    button {
+      background-color: #facc15;
+      color: #111827;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #fde047;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 15px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    li {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 10px;
+      margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .income {
+      color: #22c55e;
+    }
+
+    .expense {
+      color: #ef4444;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #f87171;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    footer {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: 95%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1> 💰 J_Budget Manager</h1>
+
+  <div class="container">
+    <div class="summary">
+      <div>
+        <h3>Income</h3>
+        <p id="income">KSh 0</p>
+      </div>
+      <div>
+        <h3>Expenses</h3>
+        <p id="expenses">KSh 0</p>
+      </div>
+      <div>
+        <h3>Balance</h3>
+        <p id="balance">KSh 0</p>
+      </div>
+    </div>
+
+    <div class="form">
+      <input type="text" id="name" placeholder="Enter item name (e.g., Lunch, Salary)">
+      <input type="number" id="amount" placeholder="Enter amount (KSh)">
+      <select id="type">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+      <button onclick="addTransaction()">Add Transaction</button>
+      <button onclick="clearAll()">Clear All</button>
+    </div>
+
+    <ul id="list"></ul>
+  </div>
+
+  <footer>Created with ❤️ by Justin</footer>
+
+  <script>
+    let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+    function updateSummary() {
+      let income = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+      let expenses = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+      let balance = income - expenses;
+
+      document.getElementById('income').innerText = `KSh ${income}`;
+      document.getElementById('expenses').innerText = `KSh ${expenses}`;
+      document.getElementById('balance').innerText = `KSh ${balance}`;
+    }
+
+    function renderList() {
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      transactions.forEach((t, index) => {
+        const li = document.createElement('li');
+        li.classList.add(t.type);
+        li.innerHTML = `
+          <span>${t.name} <strong>KSh ${t.amount}</strong></span>
+          <button class="delete-btn" onclick="deleteTransaction(${index})">✖</button>
+        `;
+        list.appendChild(li);
+      });
+      updateSummary();
+    }
+
+    function addTransaction() {
+      const name = document.getElementById('name').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value);
+      const type = document.getElementById('type').value;
+
+      if (!name || !amount || amount <= 0) {
+        alert('⚠️ Please enter valid details!');
+        return;
+      }
+
+      transactions.push({ name, amount, type });
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+
+      document.getElementById('name').value = '';
+      document.getElementById('amount').value = '';
+
+      renderList();
+    }
+
+    function deleteTransaction(index) {
+      transactions.splice(index, 1);
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+      renderList();
+    }
+
+    function clearAll() {
+      if (confirm('Are you sure you want to clear all data?')) {
+        transactions = [];
+        localStorage.removeItem('transactions');
+        renderList();
+      }
+    }
+
+    window.onload = renderList;
+  </script>
+
+</script>
+</body>
+</html>
